@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EnglishUp</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+<meta name="description" content="Your personal English coach — speak, write and grow every day.">
+<script>
+  // Apply saved light/dark theme before the page paints (no flash).
+  try {
+    var t = localStorage.getItem("englishup-theme");
+    if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+      document.documentElement.classList.add("dark");
+    }
+  } catch (e) {}
+</script>
+<style>
+  /* ---------- Colours (light + dark) ---------- */
+  :root {
+    --bg: #f7f8fc; --card: #ffffff; --fg: #1e2433; --muted: #5f6b80; --border: #e3e7ef;
+    --accent: #4f46e5; --accent-soft: #eef0ff; --good: #0f9f6e; --good-soft: #e6f7f0;
+    --warn: #c2410c; --warn-soft: #fff1e8;
+  }
+  .dark {
+    --bg: #0f1320; --card: #181d2d; --fg: #e8ebf3; --muted: #9aa4b8; --border: #2a3145;
+    --accent: #8b85ff; --accent-soft: #232650; --good: #34d399; --good-soft: #12322a;
+    --warn: #fb923c; --warn-soft: #3a2316;
+  }
+
+  /* ---------- Base ---------- */
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    line-height: 1.5; -webkit-tap-highlight-color: transparent;
+  }
+  main { max-width: 42rem; margin: 0 auto; padding: 1.5rem 1rem 7rem; }
+  h1 { font-size: 1.6rem; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; text-decoration: none; }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .stack > * + * { margin-top: 1.1rem; }
+  .muted { color: var(--muted); }
+  .small { font-size: .88rem; }
+  .good { color: var(--good); }
+  .warn { color: var(--warn); }
+  .bold { font-weight: 700; }
+  .label { font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); }
+
+  /* ---------- Components ---------- */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .card.soft { background: var(--accent-soft); }
+  .card.hero { background: var(--accent); color: #fff; text-align: center; border: none; }
+  .card.warnbox { background: var(--warn-soft); color: var(--warn); }
+  .btn { display: inline-flex; justify-content: center; align-items: center; border: none; border-radius: .8rem; padding: .8rem 1.25rem; font-weight: 600; background: var(--accent); color: #fff; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--border); }
+  .btn.block { width: 100%; }
+  .link { background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; }
+  .header { display: flex; justify-content: space-between; align-items: center; }
+  .icon-btn { background: var(--card); border: 1px solid var(--border); border-radius: 999px; width: 2.6rem; height: 2.6rem; display: grid; place-items: center; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; text-align: center; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; padding: 1rem; }
+  .stat.hl { background: var(--accent); color: #fff; border: none; }
+  .stat .v { font-size: 1.6rem; font-weight: 700; margin-top: .2rem; }
+  .stat .k { font-size: .88rem; color: var(--muted); }
+  .stat.hl .k { color: rgba(255,255,255,.8); }
+  .mini { background: var(--accent-soft); border-radius: .75rem; padding: .75rem; }
+  .mini .v { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+  .row-between { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .task { display: flex; gap: .75rem; align-items: flex-start; margin-top: .9rem; }
+  .check { flex-shrink: 0; width: 1.75rem; height: 1.75rem; border-radius: 999px; border: 2px solid var(--border); background: none; color: #fff; font-weight: 700; margin-top: .1rem; }
+  .check.on { background: var(--good); border-color: var(--good); }
+  .done { text-decoration: line-through; color: var(--muted); }
+  .weak { background: var(--warn-soft); border-radius: .75rem; padding: .75rem; margin-top: .75rem; }
+  .weak .bold { color: var(--warn); }
+  .option { display: block; width: 100%; text-align: left; background: var(--card); border: 2px solid var(--border); border-radius: .8rem; padding: .9rem 1rem; margin-top: .7rem; }
+  .option:hover { border-color: var(--accent); }
+  .option.on { border-color: var(--accent); background: var(--accent-soft); }
+  .bar { height: .5rem; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: .4rem; }
+  .bar > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width .3s; }
+  textarea, input[type=password], input[type=text] { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: .8rem; padding: .9rem 1rem; outline: none; }
+  textarea:focus, input:focus { border-color: var(--accent); }
+  .correction { border: 1px solid var(--border); border-radius: .8rem; padding: 1rem; margin-top: .75rem; }
+  .correction > * + * { margin-top: .4rem; }
+  .tag { display: inline-block; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .1rem .6rem; font-size: .78rem; font-weight: 700; }
+  .strike { color: var(--warn); text-decoration: line-through; }
+  .adv { background: var(--accent-soft); border-radius: .6rem; padding: .5rem .75rem; font-size: .92rem; }
+  .history li { display: flex; justify-content: space-between; align-items: center; padding: .75rem 0; border-top: 1px solid var(--border); }
+  .history li:first-child { border-top: none; }
+  .history { list-style: none; padding: 0; margin: .5rem 0 0; }
+  .pill { background: var(--accent); color: #fff; border-radius: 999px; padding: .2rem .8rem; font-weight: 700; }
+  ul.plain { padding-left: 1.1rem; margin: 0; }
+  .spinner { display: flex; flex-direction: column; align-items: center; gap: .75rem; padding: 3rem 0; color: var(--muted); }
+  .spinner div { width: 2rem; height: 2rem; border-radius: 999px; border: 4px solid var(--accent-soft); border-top-color: var(--accent); animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- Bottom navigation ---------- */
+  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--card); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+  nav ul { max-width: 42rem; margin: 0 auto; padding: 0; list-style: none; display: flex; }
+  nav li { flex: 1; }
+  nav a { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .6rem 0; font-size: .75rem; font-weight: 600; color: var(--muted); }
+  nav a.active { color: var(--accent); }
+  nav svg, .icon-btn svg { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-btn svg { width: 1.25rem; height: 1.25rem; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+
+<script type="module">
+// =====================================================================
+//  EnglishUp — a single-file English learning app.
+//  • All your progress is saved in this browser (localStorage).
+//  • AI feedback uses your own Claude API key, entered in Settings.
+//    The key is stored only in this browser — it is never put in the code.
+// =====================================================================
+
+const MODEL = "claude-opus-5-5";
+const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.133.0/+esm";
+const DATA_KEY = "englishup-data";
+const API_KEY = "englishup-api-key";
+
+// ---------------------------------------------------------------------
+//  Coaching rules used for ALL AI feedback
+// ---------------------------------------------------------------------
+const MISTAKE_CATEGORIES = [
+  "articles", "prepositions", "tenses", "subject-verb agreement", "word order", "word choice",
+  "direct translation", "plurals", "pronouns", "spelling & punctuation", "other",
+];
+
+const COACH_RULES = `You are EnglishUp, a warm and encouraging English coach.
+The learner is a native Hindi speaker working in digital marketing, currently around intermediate level, aiming for advanced, fluent, professional English.
+
+When you correct a sentence, always give:
+1. the original sentence,
+2. the corrected sentence (change only what is needed),
+3. a short explanation in simple Hinglish (Hindi-English mix in Roman script, e.g. "Yahan 'the' lagega kyunki hum ek specific report ki baat kar rahe hain."),
+4. one more natural / advanced version a native speaker might use.
+
+Be encouraging, never harsh. Praise what is good.
+Pay special attention to mistakes Hindi speakers commonly make:
+- articles (a / an / the missing or extra)
+- prepositions ("discuss about", "married with", "return back", "on Monday" vs "in Monday")
+- tenses (present perfect vs simple past, "since/for", "I am knowing")
+- stative verbs used in continuous form ("I am having two brothers")
+- direct translation from Hindi ("do one thing", "my mother she is", "what is your good name")
+- Indian-English office phrases ("revert back", "prepone", "kindly do the needful")
+- question word order, subject-verb agreement, missing helping verbs.
+Only correct real mistakes; do not mark correct sentences as wrong.`;
+
+// JSON shape of one correction (used inside AI response schemas).
+const CORRECTION_SCHEMA = {
+  type: "object",
+  properties: {
+    original: { type: "string", description: "The learner's original sentence, exactly as written" },
+    corrected: { type: "string", description: "The corrected sentence (minimal changes)" },
+    explanation: { type: "string", description: "1-2 short, friendly lines in simple Hinglish (Roman script)" },
+    advanced: { type: "string", description: "A more natural / advanced way a native speaker would say it" },
+    category: { type: "string", enum: MISTAKE_CATEGORIES },
+  },
+  required: ["original", "corrected", "explanation", "advanced", "category"],
+  additionalProperties: false,
+};
+
+// ---------------------------------------------------------------------
+//  Level test content (fixed questions, so every test is comparable)
+// ---------------------------------------------------------------------
+const READING_PASSAGE = `Last quarter, Riya's marketing team noticed that their Instagram ads were getting plenty of clicks but very few sales. Instead of simply increasing the budget, Riya suggested a different approach. The team interviewed twenty recent customers and discovered that most of them had first heard about the brand through friends, not ads. Based on this insight, they launched a referral programme that rewarded customers for recommending the product. Within two months, sales rose by 30 percent, while the advertising budget actually decreased. Riya's manager admitted that he had been sceptical at first, but the results spoke for themselves. The team now plans to make customer interviews a regular part of every campaign.`;
+
+const WRITING_TASK = "Describe your job and one challenge you faced at work recently. How did you handle it? (Write 80–150 words.)";
+
+// `skill` tags of wrong answers become your weak areas.
+const QUESTIONS = [
+  // Grammar
+  { section: "grammar", skill: "articles", prompt: "He gave me ___ useful suggestion and ___ honest answer.", options: ["a, an", "an, an", "a, a", "an, a"], answer: 0 },
+  { section: "grammar", skill: "stative verbs (I am having…)", prompt: "Which sentence is correct?", options: ["I am having two brothers.", "I have two brothers.", "I having two brothers.", "I am have two brothers."], answer: 1 },
+  { section: "grammar", skill: "prepositions", prompt: "Choose the correct sentence.", options: ["We discussed about the budget in the meeting.", "We discussed on the budget in the meeting.", "We discussed the budget in the meeting.", "We discussed over the budget in the meeting."], answer: 2 },
+  { section: "grammar", skill: "tenses (present perfect)", prompt: "She ___ in Pune since 2019.", options: ["lives", "is living", "has been living", "was live"], answer: 2 },
+  { section: "grammar", skill: "conditionals", prompt: "If I ___ about the deadline earlier, I would have finished the report.", options: ["knew", "had known", "have known", "would know"], answer: 1 },
+  // Vocabulary
+  { section: "vocabulary", skill: "word choice", prompt: "The client was delighted — the campaign ___ their expectations.", options: ["exceeded", "excessed", "accessed", "succeeded"], answer: 0 },
+  { section: "vocabulary", skill: "advanced vocabulary", prompt: 'What does "meticulous" mean?', options: ["careless", "very careful and precise", "very fast", "expensive"], answer: 1 },
+  { section: "vocabulary", skill: "Indian-English vs global English", prompt: "I'm busy today. Can we ___ the meeting to Friday?", options: ["prepone", "postpone", "delay off", "cancel up"], answer: 1 },
+  { section: "vocabulary", skill: "phrasal verbs", prompt: "We need to ___ a solution before the client call.", options: ["come up with", "come down on", "come across to", "come over"], answer: 0 },
+  { section: "vocabulary", skill: "professional tone", prompt: "Which line is the most professional way to end an email?", options: ["Ping me if u need stuff.", "Please don't hesitate to reach out if you need any further information.", "Tell me fast if you want more.", "Kindly revert back to me."], answer: 1 },
+  // Reading (about READING_PASSAGE)
+  { section: "reading", skill: "reading for main idea", prompt: "What is the main idea of the passage?", options: ["Instagram ads never work.", "Understanding customers led to a more effective strategy.", "The team got a much bigger budget.", "Riya's manager did not like her."], answer: 1 },
+  { section: "reading", skill: "reading for detail", prompt: "How did most customers first hear about the brand?", options: ["Instagram ads", "TV commercials", "From friends", "Email newsletters"], answer: 2 },
+  { section: "reading", skill: "inference", prompt: "Why did Riya NOT simply increase the ad budget?", options: ["She felt the problem was not the amount of money being spent.", "The company had no money left.", "Her manager refused to allow it.", "Instagram stopped showing their ads."], answer: 0 },
+  { section: "reading", skill: "vocabulary in context", prompt: 'In the passage, "sceptical" is closest in meaning to:', options: ["excited", "doubtful", "angry", "confused"], answer: 1 },
+  { section: "reading", skill: "idioms", prompt: '"The results spoke for themselves" means:', options: ["The results were announced loudly.", "The results clearly showed success; no explanation was needed.", "Customers talked about the results.", "The results were difficult to understand."], answer: 1 },
+];
+
+const LEVELS = ["A2", "B1", "B2", "C1"];
+const LEVEL_NAMES = { A2: "Elementary", B1: "Intermediate", B2: "Upper-Intermediate", C1: "Advanced" };
+
+function levelFromScore(score) {
+  if (score <= 6) return "A2";
+  if (score <= 9) return "B1";
+  if (score <= 12) return "B2";
+  return "C1";
+}
+
+// ---------------------------------------------------------------------
+//  Saving data in this browser
+// ---------------------------------------------------------------------
+function emptyData() {
+  return { tests: [], activities: [], words: [], mistakes: [], plan: { day: "", tasks: [] } };
+}
+
+function loadData() {
+  try {
+    return { ...emptyData(), ...JSON.parse(localStorage.getItem(DATA_KEY) || "{}") };
+  } catch {
+    return emptyData();
+  }
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(DATA_KEY, JSON.stringify(data));
+  } catch {
+    alert("Could not save your progress (browser storage is blocked or full).");
+  }
+}
+
+function getApiKey() {
+  try { return localStorage.getItem(API_KEY) || ""; } catch { return ""; }
+}
+
+let data = loadData();
+
+// ---------------------------------------------------------------------
+//  Dates, streak and weekly minutes
+// ---------------------------------------------------------------------
+function dayKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(date, days) {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+function startOfWeekKey(date = new Date()) {
+  const day = date.getDay(); // 0 = Sunday
+  return dayKey(addDays(date, day === 0 ? -6 : 1 - day)); // Monday
+}
+
+// Consecutive practice days counting back from today (yesterday still counts if today is empty).
+function calcStreak() {
+  const days = new Set(data.activities.map((a) => a.day));
+  let cursor = days.has(dayKey()) ? new Date() : addDays(new Date(), -1);
+  let streak = 0;
+  while (days.has(dayKey(cursor))) {
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
+function minutesThisWeek() {
+  const start = startOfWeekKey();
+  return data.activities.filter((a) => a.day >= start).reduce((sum, a) => sum + a.minutes, 0);
+}
+
+function logActivity(module, minutes) {
+  data.activities.push({ day: dayKey(), module, minutes });
+  saveData();
+}
+
+// ---------------------------------------------------------------------
+//  Today's Plan: 3 small tasks (~20 min), rotating daily
+// ---------------------------------------------------------------------
+const SPEAK_TOPICS = ["your typical workday", "a campaign you are proud of", "your favourite trip", "a recent news story", "your weekend plans", "a tool you use at work every day", "a goal for this year"];
+const WRITE_TASKS = ["Write a 5-sentence diary entry about yesterday", "Write a short email asking a client for feedback", "Write 5 sentences describing your team", "Write a short LinkedIn post about something you learned", "Write an email politely moving a meeting to another day", "Write 5 sentences about what you will do this weekend", "Write a short summary of a campaign result"];
+
+function latestTest() {
+  return data.tests[data.tests.length - 1] || null;
+}
+
+function buildPlan() {
+  const test = latestTest();
+  const weak = test ? test.weakAreas.map((w) => w.name) : [];
+  const n = Math.floor(Date.now() / 86_400_000); // changes once a day
+  const focus = weak.length ? weak[n % weak.length] : "everyday grammar";
+  const lvl = test ? `${test.level}-level ` : "";
+  return [
+    { title: `Speak: ${SPEAK_TOPICS[n % SPEAK_TOPICS.length]}`, description: `Have a 7-minute ${lvl}conversation with your AI partner. Use full sentences!`, href: "#/speak", minutes: 7, done: false },
+    { title: WRITE_TASKS[n % WRITE_TASKS.length], description: `Focus on: ${focus}. The Writing Coach will check it.`, href: "#/write", minutes: 8, done: false },
+    { title: "Review 10 flashcards", description: "Quick vocabulary review — say each word out loud.", href: "#/words", minutes: 5, done: false },
+  ];
+}
+
+function todayPlan() {
+  if (data.plan.day !== dayKey()) {
+    data.plan = { day: dayKey(), tasks: buildPlan() };
+    saveData();
+  }
+  return data.plan.tasks;
+}
+
+function toggleTask(index) {
+  const task = todayPlan()[index];
+  task.done = !task.done;
+  if (task.done) {
+    data.activities.push({ day: dayKey(), module: "plan", minutes: task.minutes });
+  } else {
+    // Remove the minutes added when it was ticked.
+    const i = data.activities.findLastIndex((a) => a.day === dayKey() && a.module === "plan" && a.minutes === task.minutes);
+    if (i >= 0) data.activities.splice(i, 1);
+  }
+  saveData();
+  render();
+}
+
+// ---------------------------------------------------------------------
+//  Claude API (called directly from your browser with your own key)
+// ---------------------------------------------------------------------
+let anthropicModule = null;
+
+async function askClaude({ system, prompt, schema, effort = "low", maxTokens = 8000 }) {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error("NO_KEY");
+
+  anthropicModule ??= await import(SDK_URL);
+  const Anthropic = anthropicModule.default;
+  // dangerouslyAllowBrowser: OK here because it's YOUR key, kept only in YOUR browser.
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+  const response = await client.beta.messages.create({
+    model: MODEL,
+    max_tokens: maxTokens,
+    // If the main model declines a request, the API retries on a recommended fallback model.
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+    system,
+    messages: [{ role: "user", content: prompt }],
+    output_config: { effort, format: { type: "json_schema", schema } }, // guarantees valid JSON
+  });
+
+  if (response.stop_reason === "refusal") throw new Error("The AI could not answer this request.");
+  if (response.stop_reason === "max_tokens") throw new Error("The AI reply was cut off. Please try again.");
+  const text = response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+  return JSON.parse(text);
+}
+
+// ---------------------------------------------------------------------
+//  Small helpers for building screens
+// ---------------------------------------------------------------------
+const app = document.getElementById("app");
+
+// Always escape text from you or the AI before putting it on the page.
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+const ICONS = {
+  home: "M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z",
+  speak: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3",
+  write: "M4 20h4L19 9l-4-4L4 16zM14 6l4 4",
+  words: "M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4zM9 8h6M9 12h6",
+  progress: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z",
+  sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
+  gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+};
+const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
+
+const spinner = (label) => `<div class="spinner"><div></div><p>${esc(label)}</p></div>`;
+
+function correctionCard(c) {
+  return `<div class="correction">
+    <span class="tag">${esc(c.category)}</span>
+    <p class="strike">${esc(c.original)}</p>
+    <p class="good bold">✓ ${esc(c.corrected)}</p>
+    <p class="small muted">💡 ${esc(c.explanation)}</p>
+    <p class="adv"><span class="bold" style="color:var(--accent)">Advanced: </span>${esc(c.advanced)}</p>
+  </div>`;
+}
+
+function renderNav(route) {
+  const items = [["#/", "Home", "home"], ["#/speak", "Speak", "speak"], ["#/write", "Write", "write"], ["#/words", "Words", "words"], ["#/progress", "Progress", "progress"]];
+  document.getElementById("nav").innerHTML = `<ul>${items
+    .map(([href, label, ic]) => `<li><a href="${href}" class="${route === href ? "active" : ""}">${icon(ic)}${label}</a></li>`)
+    .join("")}</ul>`;
+}
+
+function toggleTheme() {
+  const dark = document.documentElement.classList.toggle("dark");
+  try { localStorage.setItem("englishup-theme", dark ? "dark" : "light"); } catch {}
+  render();
+}
+
+// ---------------------------------------------------------------------
+//  Screen: Home / Dashboard
+// ---------------------------------------------------------------------
+function homeScreen() {
+  const h = new Date().getHours();
+  const greet = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  const test = latestTest();
+  const tasks = todayPlan();
+  const doneCount = tasks.filter((t) => t.done).length;
+  const totalMin = tasks.reduce((s, t) => s + t.minutes, 0);
+  const wordsLearned = data.words.filter((w) => (w.repetitions || 0) >= 2).length;
+  const dark = document.documentElement.classList.contains("dark");
+
+  return `<div class="stack">
+    <div class="header">
+      <div><p class="muted">${greet} 👋</p><h1>Welcome to EnglishUp</h1></div>
+      <div style="display:flex;gap:.5rem">
+        <a class="icon-btn" href="#/settings" aria-label="Settings">${icon("gear")}</a>
+        <button class="icon-btn" data-action="theme" aria-label="Toggle light / dark mode">${icon(dark ? "sun" : "moon")}</button>
+      </div>
+    </div>
+
+    ${!getApiKey() ? `<div class="card warnbox"><p>🔑 AI feedback ke liye apni Claude API key <a href="#/settings" style="text-decoration:underline">Settings</a> mein daaliye.</p></div>` : ""}
+
+    ${!test ? `<div class="card soft stack">
+      <h2>Let’s find your level first 🎯</h2>
+      <p class="muted">15 quick questions + one short writing task (about 15 minutes). Iske baad aapka personal plan ready ho jayega.</p>
+      <div><a class="btn" href="#/test">Start Level Test</a></div>
+    </div>` : ""}
+
+    <div class="grid2">
+      <div class="stat hl"><p class="k">Current level</p><p class="v">${test ? test.level : "—"}</p></div>
+      <div class="stat"><p class="k">Daily streak</p><p class="v">${calcStreak()} 🔥</p></div>
+      <div class="stat"><p class="k">Words learned</p><p class="v">${wordsLearned}</p></div>
+      <div class="stat"><p class="k">Minutes this week</p><p class="v">${minutesThisWeek()}</p></div>
+    </div>
+
+    <div class="card">
+      <div class="row-between"><h2>Today’s Plan</h2><span class="small muted">${doneCount}/${tasks.length} done · ~${totalMin} min</span></div>
+      ${tasks.map((t, i) => `<div class="task">
+        <button class="check ${t.done ? "on" : ""}" data-action="task" data-index="${i}" aria-label="${t.done ? "Mark as not done" : "Mark as done"}">${t.done ? "✓" : ""}</button>
+        <a href="${t.href}" style="flex:1">
+          <p class="bold ${t.done ? "done" : ""}">${esc(t.title)}</p>
+          <p class="small muted">${esc(t.description)} · ${t.minutes} min</p>
+        </a>
+      </div>`).join("")}
+    </div>
+
+    ${test && test.weakAreas.length ? `<div class="card">
+      <h2>Focus areas</h2>
+      ${test.weakAreas.map((w) => `<div class="weak"><p class="bold">${esc(w.name)}</p><p class="small muted">${esc(w.reason)}</p></div>`).join("")}
+    </div>` : ""}
+  </div>`;
+}
+
+// ---------------------------------------------------------------------
+//  Screen: Level Test
+// ---------------------------------------------------------------------
+// step: "intro" → 0..14 (questions) → "writing" → "checking" → "result"
+let testState = null;
+
+function resetTest() {
+  testState = { step: "intro", answers: {}, writing: "", startedAt: 0, result: null, error: "" };
+}
+
+function wordCount(text) {
+  return text.trim() ? text.trim().split(/\s+/).length : 0;
+}
+
+function progressBar(percent, label) {
+  return `<div><p class="small muted">${esc(label)}</p><div class="bar"><div style="width:${percent}%"></div></div></div>`;
+}
+
+function testScreen() {
+  if (!testState) resetTest();
+  const s = testState;
+
+  if (s.step === "intro") {
+    return `<div class="stack">
+      <h1>Level Test</h1>
+      <div class="card stack">
+        <ul class="plain muted">
+          <li>📝 5 grammar + 5 vocabulary + 5 reading questions</li>
+          <li>✍️ 1 short writing task (80–150 words), checked by AI</li>
+          <li>⏱️ About 15 minutes</li>
+        </ul>
+        <p>Tension mat lijiye — yeh exam nahi hai! Agar answer pakka nahi pata, toh jo sabse sahi lage woh choose kijiye.</p>
+        <button class="btn block" data-action="start-test">Start</button>
+      </div>
+    </div>`;
+  }
+
+  if (typeof s.step === "number") {
+    const i = s.step;
+    const q = QUESTIONS[i];
+    return `<div class="stack">
+      ${progressBar((i / (QUESTIONS.length + 1)) * 100, `Question ${i + 1} of ${QUESTIONS.length}`)}
+      <p class="label">${q.section}</p>
+      ${q.section === "reading" ? `<div class="card soft"><p>${esc(READING_PASSAGE)}</p></div>` : ""}
+      <h2 style="font-size:1.3rem">${esc(q.prompt)}</h2>
+      <div>${q.options.map((o, j) => `<button class="option ${s.answers[i] === j ? "on" : ""}" data-action="answer" data-index="${j}">${esc(o)}</button>`).join("")}</div>
+      ${i > 0 ? `<button class="link" data-action="prev">← Previous question</button>` : ""}
+    </div>`;
+  }
+
+  if (s.step === "writing") {
+    const wc = wordCount(s.writing);
+    return `<div class="stack">
+      ${progressBar((QUESTIONS.length / (QUESTIONS.length + 1)) * 100, "Last step: writing")}
+      <h2 style="font-size:1.3rem">${esc(WRITING_TASK)}</h2>
+      <p class="small muted">Apne words mein likhiye. Galtiyan hongi — that’s okay, AI unhi se aapka level samjhega.</p>
+      <textarea id="writing" rows="9" placeholder="I work as a digital marketing executive at…">${esc(s.writing)}</textarea>
+      <div class="row-between small">
+        <span id="wc" class="${wc < 80 || wc > 150 ? "warn" : "good"}">${wc} words</span>
+        <button class="link" data-action="back-to-questions">← Back to questions</button>
+      </div>
+      ${s.error ? `<p class="warn">${esc(s.error)}</p>` : ""}
+      <button id="submit" class="btn block" data-action="submit-test" ${wc < 20 ? "disabled" : ""}>${wc < 20 ? "Write at least 20 words" : "Finish & see my level"}</button>
+    </div>`;
+  }
+
+  if (s.step === "checking") return spinner("AI is checking your test… (about 20–40 seconds)");
+
+  // Result
+  const r = s.result;
+  return `<div class="stack">
+    <div class="card hero">
+      <p style="opacity:.8">Your level</p>
+      <p style="font-size:3rem;font-weight:800">${r.level}</p>
+      <p class="bold">${LEVEL_NAMES[r.level]}</p>
+      <p style="margin-top:.75rem;opacity:.9">${esc(r.summary)}</p>
+    </div>
+    ${r.aiError ? `<div class="card warnbox"><p>${esc(r.aiError)}</p></div>` : ""}
+    <div class="card">
+      <h2>Score: ${r.score}/${r.total}</h2>
+      <div class="grid3" style="margin-top:.75rem">
+        <div class="mini"><p class="v">${r.sectionScores.grammar}/5</p><p class="small muted">Grammar</p></div>
+        <div class="mini"><p class="v">${r.sectionScores.vocabulary}/5</p><p class="small muted">Vocabulary</p></div>
+        <div class="mini"><p class="v">${r.sectionScores.reading}/5</p><p class="small muted">Reading</p></div>
+      </div>
+      ${r.writingLevel ? `<p class="small muted" style="margin-top:.75rem">Writing level: <b style="color:var(--fg)">${r.writingLevel}</b></p>` : ""}
+      ${r.strengths ? `<p class="small good" style="margin-top:.4rem">⭐ ${esc(r.strengths)}</p>` : ""}
+    </div>
+    <div class="card">
+      <h2>Your top 3 focus areas</h2>
+      ${r.weakAreas.map((w, i) => `<div class="weak"><p class="bold">${i + 1}. ${esc(w.name)}</p><p class="small muted">${esc(w.reason)}</p></div>`).join("")}
+    </div>
+    ${r.corrections.length ? `<div class="card"><h2>Feedback on your writing</h2>${r.corrections.map(correctionCard).join("")}</div>` : ""}
+    <a class="btn block" href="#/" data-action="finish-test">Go to my Dashboard →</a>
+  </div>`;
+}
+
+const EVALUATION_SCHEMA = {
+  type: "object",
+  properties: {
+    level: { type: "string", enum: LEVELS, description: "Overall level, combining the quiz score and the writing" },
+    writingLevel: { type: "string", enum: LEVELS, description: "Level of the writing sample alone" },
+    summary: { type: "string", description: "2-3 encouraging lines in simple Hinglish about the result" },
+    strengths: { type: "string", description: "One line in Hinglish about what the learner did well" },
+    weakAreas: {
+      type: "array",
+      description: "Exactly 3 weak areas. name: short English label; reason: 1 line in Hinglish",
+      items: { type: "object", properties: { name: { type: "string" }, reason: { type: "string" } }, required: ["name", "reason"], additionalProperties: false },
+    },
+    corrections: { type: "array", description: "Up to 6 of the most useful corrections from the writing sample", items: CORRECTION_SCHEMA },
+  },
+  required: ["level", "writingLevel", "summary", "strengths", "weakAreas", "corrections"],
+  additionalProperties: false,
+};
+
+async function submitTest() {
+  const s = testState;
+  s.step = "checking";
+  s.error = "";
+  render();
+
+  // 1) Score the multiple-choice part.
+  const sectionScores = { grammar: 0, vocabulary: 0, reading: 0 };
+  const wrongSkills = [];
+  QUESTIONS.forEach((q, i) => {
+    if (s.answers[i] === q.answer) sectionScores[q.section]++;
+    else wrongSkills.push(q.skill);
+  });
+  const score = sectionScores.grammar + sectionScores.vocabulary + sectionScores.reading;
+  const quizLevel = levelFromScore(score);
+
+  // 2) Ask Claude to evaluate the writing and decide the final level + weak areas.
+  const result = { level: quizLevel, writingLevel: null, score, total: QUESTIONS.length, sectionScores, summary: "", strengths: "", weakAreas: [], corrections: [], aiError: "" };
+
+  if (!getApiKey()) {
+    result.aiError = "AI feedback is off because no API key is saved. Add it in Settings (⚙️ on the Home screen). Level is based on the quiz only.";
+  } else {
+    try {
+      const evaluation = await askClaude({
+        system: `${COACH_RULES}
+
+You are now grading a placement test. Use the CEFR scale but only these levels: A2, B1, B2, C1.
+Base the overall level on BOTH the quiz score and the writing quality. If they disagree, lean towards the writing.`,
+        prompt: `Quiz score: ${score}/15 (grammar ${sectionScores.grammar}/5, vocabulary ${sectionScores.vocabulary}/5, reading ${sectionScores.reading}/5).
+Quiz-only level estimate: ${quizLevel}.
+Skills tested by the questions the learner got WRONG: ${wrongSkills.length ? wrongSkills.join("; ") : "none"}.
+
+Writing task: "${WRITING_TASK}"
+Learner's writing:
+"""
+${s.writing}
+"""
+
+Return the overall level, the writing level, a short encouraging summary, one strength, exactly 3 weak areas (use the wrong quiz answers AND the writing), and up to 6 corrections from the writing.`,
+        schema: EVALUATION_SCHEMA,
+        effort: "medium",
+      });
+      Object.assign(result, {
+        level: evaluation.level,
+        writingLevel: evaluation.writingLevel,
+        summary: evaluation.summary,
+        strengths: evaluation.strengths,
+        weakAreas: evaluation.weakAreas.slice(0, 3),
+        corrections: evaluation.corrections,
+      });
+    } catch (error) {
+      console.error(error);
+      const msg = error?.status === 401 ? "Your API key looks wrong — please check it in Settings." : "The AI could not check your writing right now.";
+      result.aiError = `${msg} Your level is based on the quiz only.`;
+    }
+  }
+
+  // Without AI, weak areas come from the skills of the questions you got wrong.
+  if (!result.weakAreas.length) {
+    result.weakAreas = [...new Set(wrongSkills)].slice(0, 3).map((name) => ({ name, reason: "Is type ke question mein galti hui — thoda practice karte hain!" }));
+  }
+  if (!result.summary) {
+    result.summary = `Aapka score ${score}/15 hai. Badhiya start! Roz thoda practice karenge toh level jaldi upar jayega.`;
+  }
+
+  // 3) Save everything.
+  data.tests.push({ ...result, writingText: s.writing, date: new Date().toISOString() });
+  for (const c of result.corrections) data.mistakes.push({ ...c, module: "level-test", date: new Date().toISOString() });
+  const minutes = Math.min(120, Math.max(1, Math.round((Date.now() - s.startedAt) / 60000)));
+  data.activities.push({ day: dayKey(), module: "level-test", minutes });
+  // If today's plan isn't started yet, rebuild it with the new weak areas.
+  if (data.plan.day === dayKey() && !data.plan.tasks.some((t) => t.done)) data.plan.day = "";
+  saveData();
+
+  s.result = result;
+  s.step = "result";
+  render();
+}
+
+// ---------------------------------------------------------------------
+//  Screen: Progress
+// ---------------------------------------------------------------------
+function progressScreen() {
+  const tests = [...data.tests].reverse();
+  if (!tests.length) {
+    return `<div class="stack"><h1>Progress</h1>
+      <div class="card stack"><p class="muted">No level test yet. Take it to see your starting point!</p><div><a class="btn" href="#/test">Start Level Test</a></div></div>
+    </div>`;
+  }
+  return `<div class="stack">
+    <h1>Progress</h1>
+    <div class="card">
+      <h2>Level test history</h2>
+      <ul class="history">${tests.map((t) => `<li>
+        <div>
+          <p class="bold">${new Date(t.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</p>
+          <p class="small muted">Quiz ${t.score}/${t.total}${t.writingLevel ? ` · Writing ${t.writingLevel}` : ""}</p>
+        </div>
+        <span class="pill">${t.level}</span>
+      </li>`).join("")}</ul>
+    </div>
+    <a class="btn secondary block" href="#/test">Retake Level Test</a>
+    <p class="small muted">Tip: retake the test every 30 days to see real progress. Level chart and weekly reports come in Phase 4.</p>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------
+//  Screen: Settings (API key, backup, reset)
+// ---------------------------------------------------------------------
+function settingsScreen() {
+  const key = getApiKey();
+  return `<div class="stack">
+    <h1>Settings</h1>
+    <div class="card stack">
+      <h2>Claude API key</h2>
+      <p class="small muted">Key <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="text-decoration:underline">console.anthropic.com</a> se banaiye. Yeh sirf isi browser mein save hoti hai — code ya GitHub mein kabhi nahi jaati.</p>
+      <input id="apikey" type="password" placeholder="sk-ant-…" value="${esc(key)}" autocomplete="off">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn" data-action="save-key">Save key</button>
+        ${key ? `<button class="btn secondary" data-action="remove-key">Remove key</button>` : ""}
+      </div>
+      <p id="key-msg" class="small good">${key ? "✓ Key saved" : ""}</p>
+    </div>
+    <div class="card stack">
+      <h2>Backup</h2>
+      <p class="small muted">Aapka progress isi browser mein hai. Browser data clear karne se pehle backup download kar lijiye.</p>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <button class="btn secondary" data-action="export">Download backup</button>
+        <label class="btn secondary">Restore backup<input id="import" type="file" accept="application/json" hidden></label>
+      </div>
+    </div>
+    <div class="card stack">
+      <h2>Start fresh</h2>
+      <button class="btn secondary" data-action="reset" style="color:var(--warn)">Delete all my progress</button>
+    </div>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------
+//  Placeholder screens (later phases)
+// ---------------------------------------------------------------------
+function comingSoon(title, phase, description) {
+  return `<div class="stack"><h1>${title}</h1>
+    <div class="card"><p class="label">Coming in Phase ${phase}</p><p class="muted" style="margin-top:.5rem">${description}</p></div>
+    <a class="btn secondary" href="#/">← Back to Home</a>
+  </div>`;
+}
+
+// ---------------------------------------------------------------------
+//  Router: the part after # in the address decides the screen
+// ---------------------------------------------------------------------
+const ROUTES = {
+  "#/": homeScreen,
+  "#/test": testScreen,
+  "#/progress": progressScreen,
+  "#/settings": settingsScreen,
+  "#/speak": () => comingSoon("Speak", 2, "AI Conversation Partner with voice chat, and later Speaking Practice + Professional English role-plays."),
+  "#/write": () => comingSoon("Write", 2, "Writing Coach: write a paragraph, email or diary entry and get a corrected version, scores and an advanced rewrite."),
+  "#/words": () => comingSoon("Words", 2, "Flashcards with spaced repetition, pronunciation audio, and 5 new advanced words & phrases every day."),
+};
+
+function currentRoute() {
+  return ROUTES[location.hash] ? location.hash : "#/";
+}
+
+function render() {
+  const route = currentRoute();
+  app.innerHTML = ROUTES[route]();
+  renderNav(route);
+}
+
+window.addEventListener("hashchange", () => {
+  // Leaving a finished test resets it, so "Retake" starts fresh.
+  if (testState && testState.step === "result" && location.hash !== "#/test") resetTest();
+  render();
+  window.scrollTo(0, 0);
+});
+
+// ---------------------------------------------------------------------
+//  Button clicks and typing
+// ---------------------------------------------------------------------
+app.addEventListener("click", (event) => {
+  const el = event.target.closest("[data-action]");
+  if (!el) return;
+  const action = el.dataset.action;
+  const s = testState;
+
+  switch (action) {
+    case "theme": toggleTheme(); break;
+    case "task": toggleTask(Number(el.dataset.index)); break;
+
+    case "start-test":
+      s.startedAt = Date.now();
+      s.step = 0;
+      render();
+      break;
+    case "answer": {
+      const i = s.step;
+      s.answers[i] = Number(el.dataset.index);
+      render();
+      // Small pause so you can see your choice, then go on.
+      setTimeout(() => { s.step = i + 1 < QUESTIONS.length ? i + 1 : "writing"; render(); window.scrollTo(0, 0); }, 250);
+      break;
+    }
+    case "prev": s.step -= 1; render(); break;
+    case "back-to-questions": s.step = QUESTIONS.length - 1; render(); break;
+    case "submit-test": submitTest(); break;
+    case "finish-test": resetTest(); break;
+
+    case "save-key": {
+      const value = document.getElementById("apikey").value.trim();
+      try { localStorage.setItem(API_KEY, value); } catch {}
+      render();
+      break;
+    }
+    case "remove-key":
+      try { localStorage.removeItem(API_KEY); } catch {}
+      render();
+      break;
+    case "export": {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `englishup-backup-${dayKey()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      break;
+    }
+    case "reset":
+      if (confirm("Delete ALL your progress? This cannot be undone.")) {
+        data = emptyData();
+        saveData();
+        resetTest();
+        location.hash = "#/";
+        render();
+      }
+      break;
+  }
+});
+
+app.addEventListener("input", (event) => {
+  // Update word count live without re-drawing the textarea (keeps the cursor in place).
+  if (event.target.id !== "writing") return;
+  testState.writing = event.target.value;
+  const wc = wordCount(testState.writing);
+  const wcEl = document.getElementById("wc");
+  wcEl.textContent = `${wc} words`;
+  wcEl.className = wc < 80 || wc > 150 ? "warn" : "good";
+  const btn = document.getElementById("submit");
+  btn.disabled = wc < 20;
+  btn.textContent = wc < 20 ? "Write at least 20 words" : "Finish & see my level";
+});
+
+app.addEventListener("change", async (event) => {
+  if (event.target.id !== "import") return;
+  const file = event.target.files[0];
+  if (!file) return;
+  try {
+    const imported = JSON.parse(await file.text());
+    if (!Array.isArray(imported.tests)) throw new Error();
+    data = { ...emptyData(), ...imported };
+    saveData();
+    alert("Backup restored ✓");
+    location.hash = "#/";
+  } catch {
+    alert("This file is not a valid EnglishUp backup.");
+  }
+});
+
+render();
+</script>
+</body>
+</html>
