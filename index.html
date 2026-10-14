@@ -141,9 +141,10 @@ The learner is a native Hindi speaker working in digital marketing, currently ar
 When you correct a sentence, always give:
 1. the original sentence,
 2. the corrected sentence (change only what is needed),
-3. a short explanation in simple Hinglish (Hindi-English mix in Roman script, e.g. "Yahan 'the' lagega kyunki hum ek specific report ki baat kar rahe hain."),
+3. a short explanation in simple, easy English (short sentences, everyday words, e.g. "Use 'the' here because we are talking about one specific report."),
 4. one more natural / advanced version a native speaker might use.
 
+Write all feedback in English only (no Hindi or Hinglish). Keep it simple and easy to understand.
 Be encouraging, never harsh. Praise what is good.
 Pay special attention to mistakes Hindi speakers commonly make:
 - articles (a / an / the missing or extra)
@@ -161,7 +162,7 @@ const CORRECTION_SCHEMA = {
   properties: {
     original: { type: "string", description: "The learner's original sentence, exactly as written" },
     corrected: { type: "string", description: "The corrected sentence (minimal changes)" },
-    explanation: { type: "string", description: "1-2 short, friendly lines in simple Hinglish (Roman script)" },
+    explanation: { type: "string", description: "1-2 short, friendly lines in simple, easy English" },
     advanced: { type: "string", description: "A more natural / advanced way a native speaker would say it" },
     category: { type: "string", enum: MISTAKE_CATEGORIES },
   },
@@ -425,11 +426,11 @@ function homeScreen() {
       </div>
     </div>
 
-    ${!getApiKey() ? `<div class="card warnbox"><p>🔑 AI feedback ke liye apni Claude API key <a href="#/settings" style="text-decoration:underline">Settings</a> mein daaliye.</p></div>` : ""}
+    ${!getApiKey() ? `<div class="card warnbox"><p>🔑 To get AI feedback, add your Claude API key in <a href="#/settings" style="text-decoration:underline">Settings</a>.</p></div>` : ""}
 
     ${!test ? `<div class="card soft stack">
       <h2>Let’s find your level first 🎯</h2>
-      <p class="muted">15 quick questions + one short writing task (about 15 minutes). Iske baad aapka personal plan ready ho jayega.</p>
+      <p class="muted">15 quick questions + one short writing task (about 15 minutes). After that, your personal plan will be ready.</p>
       <div><a class="btn" href="#/test">Start Level Test</a></div>
     </div>` : ""}
 
@@ -489,7 +490,7 @@ function testScreen() {
           <li>✍️ 1 short writing task (80–150 words), checked by AI</li>
           <li>⏱️ About 15 minutes</li>
         </ul>
-        <p>Tension mat lijiye — yeh exam nahi hai! Agar answer pakka nahi pata, toh jo sabse sahi lage woh choose kijiye.</p>
+        <p>Relax — this is not an exam! If you are not sure of an answer, choose the one that feels most correct.</p>
         <button class="btn block" data-action="start-test">Start</button>
       </div>
     </div>`;
@@ -513,7 +514,7 @@ function testScreen() {
     return `<div class="stack">
       ${progressBar((QUESTIONS.length / (QUESTIONS.length + 1)) * 100, "Last step: writing")}
       <h2 style="font-size:1.3rem">${esc(WRITING_TASK)}</h2>
-      <p class="small muted">Apne words mein likhiye. Galtiyan hongi — that’s okay, AI unhi se aapka level samjhega.</p>
+      <p class="small muted">Write in your own words. Mistakes are okay — they help the AI understand your level.</p>
       <textarea id="writing" rows="9" placeholder="I work as a digital marketing executive at…">${esc(s.writing)}</textarea>
       <div class="row-between small">
         <span id="wc" class="${wc < 80 || wc > 150 ? "warn" : "good"}">${wc} words</span>
@@ -560,11 +561,11 @@ const EVALUATION_SCHEMA = {
   properties: {
     level: { type: "string", enum: LEVELS, description: "Overall level, combining the quiz score and the writing" },
     writingLevel: { type: "string", enum: LEVELS, description: "Level of the writing sample alone" },
-    summary: { type: "string", description: "2-3 encouraging lines in simple Hinglish about the result" },
-    strengths: { type: "string", description: "One line in Hinglish about what the learner did well" },
+    summary: { type: "string", description: "2-3 encouraging lines in simple English about the result" },
+    strengths: { type: "string", description: "One line in simple English about what the learner did well" },
     weakAreas: {
       type: "array",
-      description: "Exactly 3 weak areas. name: short English label; reason: 1 line in Hinglish",
+      description: "Exactly 3 weak areas. name: short English label; reason: 1 line in simple English",
       items: { type: "object", properties: { name: { type: "string" }, reason: { type: "string" } }, required: ["name", "reason"], additionalProperties: false },
     },
     corrections: { type: "array", description: "Up to 6 of the most useful corrections from the writing sample", items: CORRECTION_SCHEMA },
@@ -632,10 +633,10 @@ Return the overall level, the writing level, a short encouraging summary, one st
 
   // Without AI, weak areas come from the skills of the questions you got wrong.
   if (!result.weakAreas.length) {
-    result.weakAreas = [...new Set(wrongSkills)].slice(0, 3).map((name) => ({ name, reason: "Is type ke question mein galti hui — thoda practice karte hain!" }));
+    result.weakAreas = [...new Set(wrongSkills)].slice(0, 3).map((name) => ({ name, reason: "You missed a question of this type — let’s practise it a little!" }));
   }
   if (!result.summary) {
-    result.summary = `Aapka score ${score}/15 hai. Badhiya start! Roz thoda practice karenge toh level jaldi upar jayega.`;
+    result.summary = `You scored ${score}/15. Great start! A little practice every day will move your level up quickly.`;
   }
 
   // 3) Save everything.
@@ -688,7 +689,7 @@ function settingsScreen() {
     <h1>Settings</h1>
     <div class="card stack">
       <h2>Claude API key</h2>
-      <p class="small muted">Key <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="text-decoration:underline">console.anthropic.com</a> se banaiye. Yeh sirf isi browser mein save hoti hai — code ya GitHub mein kabhi nahi jaati.</p>
+      <p class="small muted">Create a key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="text-decoration:underline">console.anthropic.com</a>. It is saved only in this browser — never in the code or on GitHub.</p>
       <input id="apikey" type="password" placeholder="sk-ant-…" value="${esc(key)}" autocomplete="off">
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <button class="btn" data-action="save-key">Save key</button>
@@ -698,7 +699,7 @@ function settingsScreen() {
     </div>
     <div class="card stack">
       <h2>Backup</h2>
-      <p class="small muted">Aapka progress isi browser mein hai. Browser data clear karne se pehle backup download kar lijiye.</p>
+      <p class="small muted">Your progress is saved in this browser only. Download a backup before clearing your browser data.</p>
       <div style="display:flex;gap:.5rem;flex-wrap:wrap">
         <button class="btn secondary" data-action="export">Download backup</button>
         <label class="btn secondary">Restore backup<input id="import" type="file" accept="application/json" hidden></label>
